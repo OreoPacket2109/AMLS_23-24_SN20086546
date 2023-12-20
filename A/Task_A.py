@@ -154,7 +154,8 @@ def build_CNN(NUMBER_OF_FILTERS, INPUT_SHAPE):
     cnn.add(Dense(1, activation='sigmoid'))
 
     #Compiling model
-    cnn.compile(loss='binary_crossentropy', metrics=['accuracy'])
+    my_optimizer = Adam(learning_rate=0.001)
+    cnn.compile(optimizer = my_optimizer, loss='binary_crossentropy', metrics=['accuracy'])
 
     cnn.summary()
 
@@ -190,9 +191,9 @@ def round_up_y_pred(y_pred, threshold):
 
 #Function for getting performance metrics
 def find_performance_metric(y_test, y_pred):
-    recall = recall_score(y_test, y_pred, average = 'weighted')
-    precision = precision_score(y_test, y_pred, average = 'weighted')
-    f1 = f1_score(y_test, y_pred, average = 'weighted')
+    recall = recall_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
     accuracy = accuracy_score(y_test, y_pred)
     print("Recall score: " + str(recall))
     print("Precision score: " + str(precision))
@@ -214,19 +215,22 @@ def find_confusion_matrix(y_test, y_pred, TITLE):
 #Function for training and testing the CNN which has number_of_filters_per_layer in its 1st, 2nd, 3rd, and 4th convolutional layers (number_of_filters_per_layer is an array storing the number of filters in the 1st, 2nd, 3rd, and 4th conv layers).
 def train_test_cnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, X_test, y_test):
 
+    #==============================|3.1. Training the Model|==============================
     #Constants
     INPUT_SHAPE = (28,28,1)
-    EPOCHS = 7
+    EPOCHS = 5
     BATCH_SIZE = 32
 
     #Weights are tuned based on the results from the validation dataset.
-    weights = {0: 1, 1: 9}
+    weights = {0: 1, 1: 1}
 
     #Building the CNN
     cnn = build_CNN(number_of_filters_per_layer, INPUT_SHAPE)
 
     #Storing the model's accuracy at each epoch.
     history = cnn.fit(X_train, y_train, epochs = EPOCHS, batch_size = BATCH_SIZE, validation_data = (X_val, y_val), class_weight = weights)
+
+    #==============================|3.2. Epoch and Threshold Tuning|==============================
 
     #Plotting the model's loss vs. epoch curve
     FONT_SIZE = 18
@@ -280,9 +284,7 @@ def train_test_cnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, 
     plt.grid()
     plt.show()
 
-    #Finding confusion matrix for validation set
-    y_pred = round_up_y_pred(y_pred, maximised_threshold)
-    find_confusion_matrix(y_val, y_pred, 'Confusion Matrix for Validation Set')
+    #==============================|3.3. Testing the Model|==============================
 
     #Predicting the labels for images in the test set
     y_pred = cnn.predict(X_test)
@@ -293,6 +295,20 @@ def train_test_cnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, 
     #Finding the confusion matrix and performance metric
     find_confusion_matrix(y_test, y_pred, 'Confusion Matrix')
     find_performance_metric(y_test, y_pred)
+
+    #==============================|3.4. Printing Out Misclassified Images for Analysis|==============================
+    #Scale pixel intensities in test images back up from 0-1 to 0-255
+    X_test_scaled_up = X_test*255
+
+    #Goes through all images in test set to find misclassified images by comparing the true labels (y_test) to the predicted labels (y_pred)
+    for i in range(len(y_test)):
+        #If y_test[i] != y_pred[i], the image is misclassified, so we print it out.
+        if(y_test[i] != y_pred[i]):
+            correct_label = str(y_test[i])
+            incorrectly_classified_image = X_test_scaled_up[i]
+            plt.imshow(incorrectly_classified_image)
+            plt.title("Correct Label: " + correct_label, fontsize = 14)
+            plt.show()
 
 #Function for finding the class distribution in each dataset.
 def find_class_distribution(labels):
@@ -319,7 +335,7 @@ def find_loss_vs_sample_size(X_train, y_train, X_val, y_val, TRAINING_SET_SIZE, 
     current_training_set_labels = np.zeros((TRAINING_SET_SIZE, 1))
     EPOCHS = 8
     BATCH_SIZE = 32
-    weights = {0:1, 1:9}
+    weights = {0:1, 1:1}
 
     for i in range(TRAINING_SET_SIZE):
         random_index = random.randint(0, TRAINING_SET_INITIAL_POPULATION-1)
@@ -419,37 +435,37 @@ def Task_A_Tasks(dataset):
 
     #============================================|4. Learning Curve|============================================
     #Array for storing different training set sizes
-    training_set_sizes = [100, 500, 1000, 5000, 10000, 15000, 20000, 25000, 30000, 35000]
+    #training_set_sizes = [100, 500, 1000, 5000, 10000, 15000, 20000, 25000, 30000, 35000]
 
     #Arrays for storing the train and validation losses when a specific training set size is used
-    train_loss = np.zeros((len(training_set_sizes), 1))
-    val_loss = np.zeros((len(training_set_sizes), 1))
+    #train_loss = np.zeros((len(training_set_sizes), 1))
+    #val_loss = np.zeros((len(training_set_sizes), 1))
 
     #Generating a 40,000 image training set. The training sets used to generate the learning curve function will draw from this main pool of images. E.g., when training_set_size = 100, 100 images will be taken from X_train_balanced to train the model.
-    X_train_balanced, y_train_balanced = increase_class_population(X_train, y_train, 20000)
-    X_train_scaled = scale_down(X_train_balanced)
+    #X_train_balanced, y_train_balanced = increase_class_population(X_train, y_train, 20000)
+    #X_train_scaled = scale_down(X_train_balanced)
 
     #Training and evaluating the model's performance when different training set sizes are used.
-    for i in range(len(training_set_sizes)):
+    #for i in range(len(training_set_sizes)):
         #Finding the training and validation losses
-        current_train_loss, current_val_loss = find_loss_vs_sample_size(X_train_scaled, y_train_balanced, X_val_scaled, y_val, training_set_sizes[i], 20000, (28,28,1), pyramid)
+        #current_train_loss, current_val_loss = find_loss_vs_sample_size(X_train_scaled, y_train_balanced, X_val_scaled, y_val, training_set_sizes[i], 20000, (28,28,1), pyramid)
 
         #Stores the obtained losses in the arrays
-        train_loss[i] = current_train_loss
-        val_loss[i] = current_val_loss
+        #train_loss[i] = current_train_loss
+        #val_loss[i] = current_val_loss
 
     #Plotting the training and validation losses against the training set size
-    plt.figure(figsize=(8, 6))
-    plt.plot(training_set_sizes, train_loss, label = 'Training Loss')
-    plt.plot(training_set_sizes, val_loss, label = 'Validation Loss')
-    plt.xlabel('Training Set Size', fontsize = 16)
-    plt.ylabel('Loss', fontsize = 16)
-    plt.xticks(fontsize=14)
-    plt.yticks(fontsize=14)
-    plt.title('Learning Curve', fontsize = FONT_SIZE)
-    plt.legend(['Training Loss', 'Validation Loss'], fontsize = 14)
-    plt.grid()
-    plt.show()
+    #plt.figure(figsize=(8, 6))
+    #plt.plot(training_set_sizes, train_loss, label = 'Training Loss')
+    #plt.plot(training_set_sizes, val_loss, label = 'Validation Loss')
+    #plt.xlabel('Training Set Size', fontsize = 16)
+    #plt.ylabel('Loss', fontsize = 16)
+    #plt.xticks(fontsize=14)
+    #plt.yticks(fontsize=14)
+    #plt.title('Learning Curve', fontsize = FONT_SIZE)
+    #plt.legend(['Training Loss', 'Validation Loss'], fontsize = 14)
+    #plt.grid()
+    #plt.show()
 
 
 
