@@ -222,12 +222,12 @@ def find_confusion_matrix(y_test, y_pred, TITLE):
     plt.show()
 
 #Function for training and testing the CNN which has number_of_filters_per_layer in its 1st, 2nd, 3rd, and 4th convolutional layers (number_of_filters_per_layer is an array storing the number of filters in the 1st, 2nd, 3rd, and 4th conv layers).
-def train_test_cnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, X_test, y_test):
+def train_test_cnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, X_test, y_test, name):
 
     #==============================|3.1. Training the Model|==============================
     #Constants
     INPUT_SHAPE = (28,28,1)
-    EPOCHS = 5
+    EPOCHS = 15
     BATCH_SIZE = 32
 
     #Weights are tuned based on the results from the validation dataset.

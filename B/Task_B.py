@@ -173,6 +173,12 @@ def sample_from_main_pool(X_main, y_main, sample_size):
         return_images[i] = X_main[i]
         return_labels[i] = y_main[i]
 
+    return_labels = np.array(return_labels)
+    return_labels = return_labels.flatten()
+    return_labels = return_labels.astype(int)
+
+    print(return_labels)
+
     return return_images, return_labels
 
 #Function for building the CNN with NUMBER_OF_FILTERS filters in each layer. This CNN can take RGB images as an input.
@@ -186,22 +192,37 @@ def build_CNN(NUMBER_OF_FILTERS, INPUT_SHAPE):
 
     #Adding the first convolutional (Conv) layer
     cnn.add(Conv2D(NUMBER_OF_FILTERS[0], kernel_size = (KERNEL_SIZE,KERNEL_SIZE), strides = STRIDES, padding = 'same', activation = 'relu', input_shape = (INPUT_SHAPE[0], INPUT_SHAPE[1], INPUT_SHAPE[2])))
-
-    #Adding the first MaxPooling layer
+    cnn.add(Conv2D(NUMBER_OF_FILTERS[1], kernel_size=(KERNEL_SIZE, KERNEL_SIZE), strides=STRIDES, padding='same',
+                   activation='relu'))
+    cnn.add(Conv2D(NUMBER_OF_FILTERS[2], kernel_size=(KERNEL_SIZE, KERNEL_SIZE), strides=STRIDES, padding='same',
+                   activation='relu'))
     cnn.add(MaxPooling2D(pool_size=(2, 2)))
 
-    #Adding new convolutional layer. Number of filters in the i^th convolutional layer depends on the i^th element of the array NUMBER_OF_FILTERS
-    for i in range(len(NUMBER_OF_FILTERS)-1):
-        cnn.add(Conv2D(NUMBER_OF_FILTERS[i+1], kernel_size=(KERNEL_SIZE, KERNEL_SIZE), strides=STRIDES, padding='same', activation='relu'))
+    cnn.add(Conv2D(NUMBER_OF_FILTERS[3], kernel_size=(KERNEL_SIZE, KERNEL_SIZE), strides=STRIDES, padding='same',
+                   activation='relu'))
+    cnn.add(Conv2D(NUMBER_OF_FILTERS[4], kernel_size=(KERNEL_SIZE, KERNEL_SIZE), strides=STRIDES, padding='same',
+                   activation='relu'))
+    cnn.add(MaxPooling2D(pool_size=(2, 2)))
 
-        cnn.add(MaxPooling2D(pool_size=(2, 2)))
+    cnn.add(Conv2D(NUMBER_OF_FILTERS[5], kernel_size=(KERNEL_SIZE, KERNEL_SIZE), strides=STRIDES, padding='same',
+                   activation='relu'))
+    cnn.add(MaxPooling2D(pool_size=(2, 2)))
+
+    #Adding the first MaxPooling layer
+    #cnn.add(MaxPooling2D(pool_size=(2, 2)))
+
+    #Adding new convolutional layer. Number of filters in the i^th convolutional layer depends on the i^th element of the array NUMBER_OF_FILTERS
+    #for i in range(len(NUMBER_OF_FILTERS)-1):
+    #    cnn.add(Conv2D(NUMBER_OF_FILTERS[i+1], kernel_size=(KERNEL_SIZE, KERNEL_SIZE), strides=STRIDES, padding='same', activation='relu'))
+    #    cnn.add(MaxPooling2D(pool_size=(2, 2)))
 
     #Adding the flatten layer
     cnn.add(Flatten())
 
     #Adding the fully-connected (FC) layer
-    cnn.add(Dense(84, activation = 'relu'))
-
+    cnn.add(Dense(256, activation = 'relu'))
+    cnn.add(Dense(128, activation='relu'))
+    cnn.add(Dense(64, activation='relu'))
     #9 nodes, each representing the probability of the image being in one of the 9 classes. The CNN outputs a 9x1 array, wherein the i^th element represents the probability of the image belonging to the i^th class
     cnn.add(Dense(9, activation = 'softmax'))
 
@@ -264,8 +285,8 @@ def train_test_cnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, 
     #==============================|3.1. Training the Model|==============================
     #Constants
     INPUT_SHAPE = (28, 28, 3)
-    EPOCHS = 30
-    BATCH_SIZE = 32
+    EPOCHS = 5
+    BATCH_SIZE = 64
 
     #Building the CNN with the number of filters in each layer specified by number_of_filters_per_layer
     cnn = build_CNN(number_of_filters_per_layer, INPUT_SHAPE)
@@ -306,8 +327,8 @@ def train_test_cnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, 
 #Function for finding the model loss when different training set sizes are used
 def find_loss_vs_sample_size(X_train, y_train, X_val, y_val, INPUT_SHAPE, NUMBER_OF_FILTERS_PER_LAYER):
     #Constants
-    EPOCHS = 15
-    BATCH_SIZE = 32
+    EPOCHS = 3
+    BATCH_SIZE = 64
 
     #Building and training the model
     cnn = build_CNN(NUMBER_OF_FILTERS_PER_LAYER, INPUT_SHAPE)
@@ -351,10 +372,15 @@ def Task_B_Tasks(dataset):
     plt.show()
 
     #============================================|2. Data Pre-Processing|============================================
-    #Balancing the training set
-    X_train_balanced, y_train_balanced = increase_class_population(X_train, y_train, 20000)
+    #Creating the main pool of images for the model to pull from during the training stage, since the model will be trained at different training set sizes to find the optimal training set size. The pool contains 12, 000 images from each class.
+    X_train_balanced_pool, y_train_balanced_pool = increase_class_population(X_train, y_train, 25000)
 
-    #Finding the new distribution for the balanced training set
+    #Scales down image pixel values from 0-255 to 0-1
+    X_train_balanced_pool = scale_down(X_train_balanced_pool)
+
+    #Taking 10 000 images from the main pool to train on
+    X_train_balanced, y_train_balanced = increase_class_population(X_train, y_train, 22000)#sample_from_main_pool(X_train_balanced_pool, y_train_balanced_pool, 22000)
+    X_train_balanced = scale_down(X_train_balanced)
     balanced_train_distribution = find_class_distribution(y_train_balanced)
 
     #Plotting pie charts to compare the training set's distribution before and after it is balanced
@@ -367,30 +393,21 @@ def Task_B_Tasks(dataset):
     plt.tight_layout()
     plt.show()
 
-    #Scaling down the images from 0-255 to 0-1
-    X_train_scaled_balanced = scale_down(X_train_balanced)
-    X_train_scaled = scale_down(X_train)
+    #Scaling down the validation and test images from 0-255 to 0-1
     X_val_scaled = scale_down(X_val)
     X_test_scaled = scale_down(X_test)
 
     #============================================|3. Model Training, Hyperparamter Tuning, and Testing|============================================
     #Arrays containing the number of filters per convolution layer for the pyramid and reverse-pyramid structures
-    pyramid = [16, 12, 10, 8]
-    reverse_pyramid = [8, 10, 12, 16]
+    reverse_pyramid = [32, 40, 48, 50, 56, 64]
 
     #Building the cnn, training it, validating it, and testing it for both the pyramid and reverse-pyramid structures
-    train_test_cnn(pyramid, X_train_scaled_balanced, y_train_balanced, X_val_scaled, y_val, X_test_scaled, y_test)
-    train_test_cnn(reverse_pyramid, X_train_scaled_balanced, y_train_balanced, X_val_scaled, y_val, X_test_scaled, y_test)
+    #train_test_cnn(pyramid, X_train_scaled_balanced, y_train_balanced, X_val_scaled, y_val, X_test_scaled, y_test)
+    train_test_cnn(reverse_pyramid, X_train_balanced, y_train_balanced, X_val_scaled, y_val, X_test_scaled, y_test)
 
     #============================================|4. Learning Curve|============================================
     #Array containing the different training set sizes the model is trained on
-    training_set_sizes = [900, 9000, 18000, 27000, 63000, 90000, 104400]
-
-    #Generating extra datapoints for each class to ensure each class has 11600 images. The images used to train the model at different training_set_sizes[i] will be taken from this pool
-    X_train_balanced_pool, y_train_balanced_pool = increase_class_population(X_train, y_train, 11600)
-
-    #Scales down the images from 0-255 to 0-1
-    X_train_balanced_pool = scale_down(X_train_balanced_pool)
+    training_set_sizes = [900, 18000, 63000, 90000, 180000]
 
     #Arrays for storing the training and validation losses at different training set sizes
     train_loss = np.zeros((len(training_set_sizes), 1))
