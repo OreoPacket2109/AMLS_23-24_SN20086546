@@ -31,6 +31,15 @@ from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.metrics import roc_curve, auc
 
+#Font sizes for plotting to ensure figures have consistent font sizes
+VERY_BIG_FONT = 18
+BIG_FONT = 16
+MEDIUM_FONT = 14
+SMALL_FONT = 12
+
+#Colors for pie charts to ensure figures have consistent colours
+my_colors = ['cornflowerblue', 'darkorange']
+
 #Function for returning random noisy image from a set of images
 def add_noise_to_image(images):
     #Gets number of images from the image set
@@ -206,10 +215,10 @@ def find_confusion_matrix(y_test, y_pred, TITLE):
     cm = confusion_matrix(y_test, y_pred)
 
     #Plotting the confusion matrix
-    sns.heatmap(cm, annot = True, cmap = 'Blues', fmt = 'g', annot_kws={"fontsize": 12})
-    plt.xlabel('Predicted Value', fontsize = 14)
-    plt.ylabel('True Value', fontsize = 14)
-    plt.suptitle(TITLE, fontsize = 16)
+    sns.heatmap(cm, annot = True, cmap = 'Blues', fmt = 'g', annot_kws={"fontsize": SMALL_FONT})
+    plt.xlabel('Predicted Value', fontsize = MEDIUM_FONT)
+    plt.ylabel('True Value', fontsize = MEDIUM_FONT)
+    plt.suptitle(TITLE, fontsize = BIG_FONT)
     plt.show()
 
 #Function for training and testing the CNN which has number_of_filters_per_layer in its 1st, 2nd, 3rd, and 4th convolutional layers (number_of_filters_per_layer is an array storing the number of filters in the 1st, 2nd, 3rd, and 4th conv layers).
@@ -233,7 +242,6 @@ def train_test_cnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, 
     #==============================|3.2. Epoch and Threshold Tuning|==============================
 
     #Plotting the model's loss vs. epoch curve
-    FONT_SIZE = 18
     training_loss = history.history['loss']
     val_loss = history.history['val_loss']
     epochs = range(1, len(training_loss) + 1)
@@ -241,12 +249,12 @@ def train_test_cnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, 
     plt.figure(figsize=(8, 6))
     plt.plot(epochs, training_loss, label = 'Training')
     plt.plot(epochs, val_loss, label = 'Validation')
-    plt.title('Training and Validation Loss', fontsize = FONT_SIZE)
-    plt.legend(['Training Loss', 'Validation Loss'], fontsize = 14)
-    plt.xlabel('Epochs', fontsize = 14)
-    plt.ylabel('Loss', fontsize = 14)
-    plt.xticks(fontsize=14)
-    plt.yticks(fontsize=14)
+    plt.title('Training and Validation Loss', fontsize = BIG_FONT)
+    plt.legend(['Training Loss', 'Validation Loss'], fontsize = MEDIUM_FONT)
+    plt.xlabel('Epochs', fontsize = MEDIUM_FONT)
+    plt.ylabel('Loss', fontsize = MEDIUM_FONT)
+    plt.xticks(fontsize=SMALL_FONT)
+    plt.yticks(fontsize=SMALL_FONT)
     plt.grid()
     plt.show()
 
@@ -277,10 +285,10 @@ def train_test_cnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, 
     plt.plot(fpr, tpr)
     plt.plot([0,1], [0,1], linestyle = '--')
     plt.scatter(fpr[maximised_index], tpr[maximised_index], marker = 'x', s = 100, color = 'red')
-    plt.xlabel('False Positive Rate (FPR)', fontsize = 14)
-    plt.ylabel('True Positive Rate (TPR)', fontsize = 14)
-    plt.title('Receiver Operating Characteristic (ROC) Curve', fontsize = 16)
-    plt.legend(['ROC Curve', 'Random Guess', 'Maximised (FPR-TPR)'], fontsize = 12)
+    plt.xlabel('False Positive Rate (FPR)', fontsize = MEDIUM_FONT)
+    plt.ylabel('True Positive Rate (TPR)', fontsize = MEDIUM_FONT)
+    plt.title('Receiver Operating Characteristic (ROC) Curve', fontsize = BIG_FONT)
+    plt.legend(['ROC Curve', 'Random Guess', 'Maximised (FPR-TPR)'], fontsize = SMALL_FONT)
     plt.grid()
     plt.show()
 
@@ -369,16 +377,15 @@ def Task_A_Tasks(dataset):
     test_distribution = find_class_distribution(y_test)
 
     #Plotting the class distribution for each set
-    FONT_SIZE = 18
-    fig, axes = plt.subplots(nrows = 1, ncols = 3, figsize = (15,15))
+    fig, axes = plt.subplots(nrows = 1, ncols = 3, figsize = (10,10))
 
-    axes[0].pie(train_distribution, autopct='%1.1f%%', textprops={'fontsize': FONT_SIZE})
-    axes[0].set_title("Training Set", fontsize = FONT_SIZE)
-    axes[1].pie(val_distribution, autopct='%1.1f%%', textprops={'fontsize': FONT_SIZE})
-    axes[1].set_title("Validation Set", fontsize = FONT_SIZE)
-    axes[2].pie(test_distribution, autopct='%1.1f%%', textprops={'fontsize': FONT_SIZE})
-    axes[2].set_title("Test Set", fontsize = FONT_SIZE)
-    plt.legend(['Class 0', 'Class 1'], bbox_to_anchor=(1.05, 1.0), loc='upper left', fontsize = FONT_SIZE)
+    axes[0].pie(train_distribution, autopct='%1.1f%%', textprops={'fontsize': BIG_FONT}, colors = my_colors)
+    axes[0].set_title("Training Set", fontsize = VERY_BIG_FONT)
+    axes[1].pie(val_distribution, autopct='%1.1f%%', textprops={'fontsize': BIG_FONT}, colors = my_colors)
+    axes[1].set_title("Validation Set", fontsize = VERY_BIG_FONT)
+    axes[2].pie(test_distribution, autopct='%1.1f%%', textprops={'fontsize': BIG_FONT}, colors = my_colors)
+    axes[2].set_title("Test Set", fontsize = VERY_BIG_FONT)
+    plt.legend(['Class 0', 'Class 1'], bbox_to_anchor=(1.05, 1.0), loc='upper left', fontsize = BIG_FONT)
     plt.tight_layout()
     plt.show()
     #============================================|2. Data Pre-Processing|============================================
@@ -407,15 +414,15 @@ def Task_A_Tasks(dataset):
     #Plotting the old training set's class distribution vs. the new training set's distribution after the dataset has been balanced
     train_balanced_distribution = find_class_distribution(y_train_balanced)
 
-    fig,axes = plt.subplots(nrows = 1, ncols = 2, figsize = (15,15))
+    fig,axes = plt.subplots(nrows = 1, ncols = 2, figsize = (8,8))
 
-    axes[0].pie(train_distribution, autopct='%1.1f%%', textprops={'fontsize': FONT_SIZE})
-    axes[0].set_title("Unbalanced Training Set", fontsize = FONT_SIZE)
+    axes[0].pie(train_distribution, autopct='%1.1f%%', textprops={'fontsize': MEDIUM_FONT}, colors = my_colors)
+    axes[0].set_title("Unbalanced Training Set", fontsize = BIG_FONT)
 
-    axes[1].pie(train_balanced_distribution, autopct='%1.1f%%', textprops={'fontsize': FONT_SIZE})
-    axes[1].set_title("Balanced Training Set", fontsize = FONT_SIZE)
+    axes[1].pie(train_balanced_distribution, autopct='%1.1f%%', textprops={'fontsize': MEDIUM_FONT}, colors = my_colors)
+    axes[1].set_title("Balanced Training Set", fontsize = BIG_FONT)
 
-    plt.legend(['Class 0', 'Class 1'], bbox_to_anchor = (1.05, 1.0), loc = 'upper left', fontsize = FONT_SIZE)
+    plt.legend(['Class 0', 'Class 1'], bbox_to_anchor = (1.05, 1.0), loc = 'upper left', fontsize = MEDIUM_FONT)
     plt.tight_layout()
     plt.show()
 
@@ -435,38 +442,34 @@ def Task_A_Tasks(dataset):
 
     #============================================|4. Learning Curve|============================================
     #Array for storing different training set sizes
-    #training_set_sizes = [100, 500, 1000, 5000, 10000, 15000, 20000, 25000, 30000, 35000]
+    training_set_sizes = [100, 500, 1000, 5000, 10000, 15000, 20000, 25000, 30000, 35000]
 
     #Arrays for storing the train and validation losses when a specific training set size is used
-    #train_loss = np.zeros((len(training_set_sizes), 1))
-    #val_loss = np.zeros((len(training_set_sizes), 1))
+    train_loss = np.zeros((len(training_set_sizes), 1))
+    val_loss = np.zeros((len(training_set_sizes), 1))
 
     #Generating a 40,000 image training set. The training sets used to generate the learning curve function will draw from this main pool of images. E.g., when training_set_size = 100, 100 images will be taken from X_train_balanced to train the model.
-    #X_train_balanced, y_train_balanced = increase_class_population(X_train, y_train, 20000)
-    #X_train_scaled = scale_down(X_train_balanced)
+    X_train_balanced, y_train_balanced = increase_class_population(X_train, y_train, 20000)
+    X_train_scaled = scale_down(X_train_balanced)
 
     #Training and evaluating the model's performance when different training set sizes are used.
-    #for i in range(len(training_set_sizes)):
+    for i in range(len(training_set_sizes)):
         #Finding the training and validation losses
-        #current_train_loss, current_val_loss = find_loss_vs_sample_size(X_train_scaled, y_train_balanced, X_val_scaled, y_val, training_set_sizes[i], 20000, (28,28,1), pyramid)
+        current_train_loss, current_val_loss = find_loss_vs_sample_size(X_train_scaled, y_train_balanced, X_val_scaled, y_val, training_set_sizes[i], 20000, (28,28,1), pyramid)
 
         #Stores the obtained losses in the arrays
-        #train_loss[i] = current_train_loss
-        #val_loss[i] = current_val_loss
+        train_loss[i] = current_train_loss
+        val_loss[i] = current_val_loss
 
     #Plotting the training and validation losses against the training set size
-    #plt.figure(figsize=(8, 6))
-    #plt.plot(training_set_sizes, train_loss, label = 'Training Loss')
-    #plt.plot(training_set_sizes, val_loss, label = 'Validation Loss')
-    #plt.xlabel('Training Set Size', fontsize = 16)
-    #plt.ylabel('Loss', fontsize = 16)
-    #plt.xticks(fontsize=14)
-    #plt.yticks(fontsize=14)
-    #plt.title('Learning Curve', fontsize = FONT_SIZE)
-    #plt.legend(['Training Loss', 'Validation Loss'], fontsize = 14)
-    #plt.grid()
-    #plt.show()
-
-
-
-
+    plt.figure(figsize=(8, 6))
+    plt.plot(training_set_sizes, train_loss, label = 'Training Loss')
+    plt.plot(training_set_sizes, val_loss, label = 'Validation Loss')
+    plt.xlabel('Training Set Size', fontsize = MEDIUM_FONT)
+    plt.ylabel('Loss', fontsize = MEDIUM_FONT)
+    plt.xticks(fontsize=SMALL_FONT)
+    plt.yticks(fontsize=SMALL_FONT)
+    plt.title('Learning Curve', fontsize = BIG_FONT)
+    plt.legend(['Training Loss', 'Validation Loss'], fontsize = MEDIUM_FONT)
+    plt.grid()
+    plt.show()

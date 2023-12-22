@@ -7,6 +7,7 @@ import random
 from matplotlib import pyplot as plt
 
 from A.Task_A import Task_A_Tasks
+from B.Task_B import Task_B_Tasks
 
 def load_data(dataset_dir):
     #Saves laoded data as the variable dataset
@@ -26,12 +27,21 @@ def load_data(dataset_dir):
 
     return dataset
 
-
-
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    data_dir = 'Datasets/pneumoniamnist.npz'
-    dataset = load_data(data_dir)
+    #Loading dataset from PneumoniaMNIST
+    data_dir_A = 'Datasets/pneumoniamnist.npz'
+    dataset_A = load_data(data_dir_A)
 
-    Task_A_Tasks(dataset)
+    #Passing the dataset into the function for running TaskA-related tasks
+    #Task_A_Tasks(dataset_A)
+
+    #Loading dataset from PathMNIST
+    data_dir_B = 'Datasets/pathmnist.npz'
+    dataset_B = load_data(data_dir_B)
+
+    #Passing the dataset into the function for running TaskB-related tasks
+    Task_B_Tasks(dataset_B)
+
+
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
