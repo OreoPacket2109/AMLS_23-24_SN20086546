@@ -41,7 +41,7 @@ SMALL_FONT = 12
 my_colors = ['cornflowerblue', 'darkorange']
 
 #Function for returning random noisy image from a set of images
-def add_noise_to_image(images):
+def addNoiseToImage(images):
     #Gets number of images from the image set
     NUMBER_OF_IMAGES = len(images)
 
@@ -62,7 +62,7 @@ def add_noise_to_image(images):
     return noisy_image
 
 #Function for increasing the population of all classes in the dataset to new_population.
-def increase_class_population(images, labels, new_population):
+def increaseClassPopulation(images, labels, new_population):
     #List for storing images in classes 0 and 1
     class0 = []
     class1 = []
@@ -98,7 +98,7 @@ def increase_class_population(images, labels, new_population):
     #Keeps adding new noisy class0 images to images_added until the total number of class0 images (from the initial dataset, and the newly added noisy class0 images) is equal to new_population.
     while(new_distribution[0] < new_population):
         #Creates a noisy class0 image with the function add_noise_to_image
-        new_image = add_noise_to_image(class0)
+        new_image = addNoiseToImage(class0)
 
         #Stores the noisy image in the array images_added
         images_added[number_of_class0_images_added+number_of_class1_images_added] = new_image
@@ -115,7 +115,7 @@ def increase_class_population(images, labels, new_population):
     #Keeps adding new noisy class1 images to images_added until the total number of class1 images (from the initial dataset, and the newly added noisy class1 images) is equal to new_population
     while(new_distribution[1] < new_population):
         #Creates noisy class1 image with the function add_noise_to_image
-        new_image = add_noise_to_image(class1)
+        new_image = addNoiseToImage(class1)
 
         #Storing the generated image in images_added, and its corresponding label (class = 1) in labels_added
         images_added[number_of_class0_images_added+number_of_class1_images_added] = new_image
@@ -135,7 +135,7 @@ def increase_class_population(images, labels, new_population):
     return return_images, return_labels
 
 #Function for building cnn. NUMBER_OF_FILTERS stores the number of filters the 1st, 2nd, 3rd, and 4th convolution layers in the CNN has. INPUT_SHAPE stores the shape of the input image.
-def build_CNN(NUMBER_OF_FILTERS, INPUT_SHAPE):
+def buildCNN(NUMBER_OF_FILTERS, INPUT_SHAPE):
 
     #Constants
     KERNEL_SIZE = 3
@@ -144,20 +144,19 @@ def build_CNN(NUMBER_OF_FILTERS, INPUT_SHAPE):
     cnn = Sequential()
 
     cnn.add(Conv2D(NUMBER_OF_FILTERS[0], kernel_size = (KERNEL_SIZE,KERNEL_SIZE), strides = STRIDES, padding = 'same', activation = 'relu', input_shape = (INPUT_SHAPE[0], INPUT_SHAPE[1], INPUT_SHAPE[2])))
+    cnn.add(Conv2D(NUMBER_OF_FILTERS[1], kernel_size=(KERNEL_SIZE, KERNEL_SIZE), strides=STRIDES, padding='same',
+                   activation='relu'))
     cnn.add(MaxPooling2D(pool_size=(2, 2)))
-
-    #Adding new convolutional layer. Number of filters in the i^th convolution layer depends on the i^th element of the array NUMBER_OF_FILTERS
-    for i in range(len(NUMBER_OF_FILTERS)-1):
-        cnn.add(Conv2D(NUMBER_OF_FILTERS[i+1], kernel_size=(KERNEL_SIZE, KERNEL_SIZE), strides=STRIDES, padding='same', activation='relu'))
-
-        #Adding maxpooling layer after the convolutional layer
-        cnn.add(MaxPooling2D(pool_size=(2, 2)))
+    cnn.add(Conv2D(NUMBER_OF_FILTERS[2], kernel_size=(KERNEL_SIZE, KERNEL_SIZE), strides=STRIDES, padding='same',
+                   activation='relu'))
+    cnn.add(MaxPooling2D(pool_size=(2, 2)))
 
     #Convert output of the convolutional layer into a 1-dimensional array
     cnn.add(Flatten())
 
     #Fully connected layer, with ReLU activation function
-    cnn.add(Dense(84, activation = 'relu'))
+    cnn.add(Dense(128, activation = 'relu'))
+    cnn.add(Dense(64, activation = 'relu'))
 
     #Fully connected layer, with sigmoid activation function.
     cnn.add(Dense(1, activation='sigmoid'))
@@ -172,7 +171,7 @@ def build_CNN(NUMBER_OF_FILTERS, INPUT_SHAPE):
     return cnn
 
 #Function for scaling down pixel values in the images to 0-1, instead of 0-255.
-def scale_down(dataset):
+def scaleDown(dataset):
     #pixel intensity varies from 0 to 255. This scales down the intensity so that it varies from 0 to 1
     scaled_dataset = dataset/255
 
@@ -180,7 +179,7 @@ def scale_down(dataset):
     return scaled_dataset
 
 #Function for rounding up y_pred
-def round_up_y_pred(y_pred, threshold):
+def roundUpYPred(y_pred, threshold):
     #Array for storing the rounded up/down predictions. The CNN model outputs the probability of the image being class 1, so we have to round it up/down to either 1 or 0.
     y_pred_rounded = np.zeros(len(y_pred))
 
@@ -199,7 +198,7 @@ def round_up_y_pred(y_pred, threshold):
     return y_pred_rounded
 
 #Function for getting performance metrics
-def find_performance_metric(y_test, y_pred):
+def findPerformanceMetric(y_test, y_pred):
     recall = recall_score(y_test, y_pred)
     precision = precision_score(y_test, y_pred)
     f1 = f1_score(y_test, y_pred)
@@ -210,7 +209,7 @@ def find_performance_metric(y_test, y_pred):
     print("Accuracy score: " +str(accuracy))
 
 #Function for printing out confusion matrix
-def find_confusion_matrix(y_test, y_pred, TITLE):
+def findConfusionMatrix(y_test, y_pred, TITLE):
     #Confusion matrix created based on the images' true label (y_test), and its predicted label (y_pred)
     cm = confusion_matrix(y_test, y_pred)
 
@@ -222,7 +221,7 @@ def find_confusion_matrix(y_test, y_pred, TITLE):
     plt.show()
 
 #Function for training and testing the CNN which has number_of_filters_per_layer in its 1st, 2nd, 3rd, and 4th convolutional layers (number_of_filters_per_layer is an array storing the number of filters in the 1st, 2nd, 3rd, and 4th conv layers).
-def train_test_cnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, X_test, y_test, name):
+def trainTestCnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, X_test, y_test):
 
     #==============================|3.1. Training the Model|==============================
     #Constants
@@ -234,7 +233,7 @@ def train_test_cnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, 
     weights = {0: 1, 1: 1}
 
     #Building the CNN
-    cnn = build_CNN(number_of_filters_per_layer, INPUT_SHAPE)
+    cnn = buildCNN(number_of_filters_per_layer, INPUT_SHAPE)
 
     #Storing the model's accuracy at each epoch.
     history = cnn.fit(X_train, y_train, epochs = EPOCHS, batch_size = BATCH_SIZE, validation_data = (X_val, y_val), class_weight = weights)
@@ -298,28 +297,28 @@ def train_test_cnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, 
     y_pred = cnn.predict(X_test)
 
     #Rounding up the probabilities from y_pred, based on the threshold obtained using Youden J's stats.
-    y_pred = round_up_y_pred(y_pred, maximised_threshold)
+    y_pred = roundUpYPred(y_pred, maximised_threshold)
 
     #Finding the confusion matrix and performance metric
-    find_confusion_matrix(y_test, y_pred, 'Confusion Matrix')
-    find_performance_metric(y_test, y_pred)
+    findConfusionMatrix(y_test, y_pred, 'Confusion Matrix')
+    findPerformanceMetric(y_test, y_pred)
 
     #==============================|3.4. Printing Out Misclassified Images for Analysis|==============================
     #Scale pixel intensities in test images back up from 0-1 to 0-255
     X_test_scaled_up = X_test*255
 
     #Goes through all images in test set to find misclassified images by comparing the true labels (y_test) to the predicted labels (y_pred)
-    for i in range(len(y_test)):
+    #for i in range(len(y_test)):
         #If y_test[i] != y_pred[i], the image is misclassified, so we print it out.
-        if(y_test[i] != y_pred[i]):
-            correct_label = str(y_test[i])
-            incorrectly_classified_image = X_test_scaled_up[i]
-            plt.imshow(incorrectly_classified_image)
-            plt.title("Correct Label: " + correct_label, fontsize = 14)
-            plt.show()
+    #    if(y_test[i] != y_pred[i]):
+    #        correct_label = str(y_test[i])
+    #        incorrectly_classified_image = X_test_scaled_up[i]
+    #        plt.imshow(incorrectly_classified_image)
+    #        plt.title("Correct Label: " + correct_label, fontsize = 14)
+    #        plt.show()
 
 #Function for finding the class distribution in each dataset.
-def find_class_distribution(labels):
+def findClassDistribution(labels):
     #Class distribution stores the number of images in each class. E.g., class_distribution[0] stores the number of images in class0
     class_distribution = [0, 0]
 
@@ -338,7 +337,7 @@ def find_class_distribution(labels):
     return class_distribution
 
 
-def find_loss_vs_sample_size(X_train, y_train, X_val, y_val, TRAINING_SET_SIZE, TRAINING_SET_INITIAL_POPULATION, INPUT_SHAPE, number_of_filters_per_layer):
+def findLossVsSampleSize(X_train, y_train, X_val, y_val, TRAINING_SET_SIZE, TRAINING_SET_INITIAL_POPULATION, INPUT_SHAPE, number_of_filters_per_layer):
     current_training_set_images = np.zeros((TRAINING_SET_SIZE, 28, 28))
     current_training_set_labels = np.zeros((TRAINING_SET_SIZE, 1))
     EPOCHS = 8
@@ -350,7 +349,7 @@ def find_loss_vs_sample_size(X_train, y_train, X_val, y_val, TRAINING_SET_SIZE, 
         current_training_set_images[i] = X_train[random_index]
         current_training_set_labels[i] = y_train[random_index]
 
-    cnn = build_CNN(number_of_filters_per_layer, INPUT_SHAPE)
+    cnn = buildCNN(number_of_filters_per_layer, INPUT_SHAPE)
     history = cnn.fit(current_training_set_images, current_training_set_labels, epochs = EPOCHS, batch_size = BATCH_SIZE, class_weight = weights, validation_data=(X_val, y_val))
 
     train_loss = cnn.evaluate(X_train, y_train)
@@ -372,9 +371,9 @@ def Task_A_Tasks(dataset):
     y_test = dataset['test_labels']
 
     #Finding the class distribution for each set
-    train_distribution = find_class_distribution(y_train)
-    val_distribution = find_class_distribution(y_val)
-    test_distribution = find_class_distribution(y_test)
+    train_distribution = findClassDistribution(y_train)
+    val_distribution = findClassDistribution(y_val)
+    test_distribution = findClassDistribution(y_test)
 
     #Plotting the class distribution for each set
     fig, axes = plt.subplots(nrows = 1, ncols = 3, figsize = (10,10))
@@ -388,9 +387,22 @@ def Task_A_Tasks(dataset):
     plt.legend(['Class 0', 'Class 1'], bbox_to_anchor=(1.05, 1.0), loc='upper left', fontsize = BIG_FONT)
     plt.tight_layout()
     plt.show()
+
+    #Plotting images from class 0 and 1
+    fig, axes = plt.subplots(nrows = 1, ncols = 2, figsize = (10,10))
+    class0_image = cv2.cvtColor(X_train[5], cv2.COLOR_RGB2BGR)
+    axes[0].imshow(class0_image)
+    axes[0].set_title("Class 0", fontsize = VERY_BIG_FONT)
+
+    class1_image = cv2.cvtColor(X_train[2], cv2.COLOR_RGB2BGR)
+    axes[1].imshow(class1_image)
+    axes[1].set_title("Class 1", fontsize = VERY_BIG_FONT)
+    plt.tight_layout()
+    plt.show()
+
     #============================================|2. Data Pre-Processing|============================================
     #Increasing the population of the training set to 20 000 (10 000 for class0, 10 000 for class1). This also effectively balances the training set, since both classes now have the same population.
-    X_train_balanced, y_train_balanced = increase_class_population(X_train, y_train, 10000)
+    X_train_balanced, y_train_balanced = increaseClassPopulation(X_train, y_train, 10000)
 
     #Plotting original image vs. noisy image
     original_image = X_train[0]
@@ -401,10 +413,12 @@ def Task_A_Tasks(dataset):
     noisy_image = np.array(noisy_image)
 
     plt.subplot(1,2,1)
+    original_image = cv2.cvtColor(original_image, cv2.COLOR_RGB2BGR)
     plt.imshow(original_image)
     plt.title("Original Image")
 
     plt.subplot(1,2,2)
+    noisy_image = cv2.cvtColor(noisy_image, cv2.COLOR_RGB2BGR)
     plt.imshow(noisy_image)
     plt.title("Noisy Image")
 
@@ -412,7 +426,7 @@ def Task_A_Tasks(dataset):
     plt.show()
 
     #Plotting the old training set's class distribution vs. the new training set's distribution after the dataset has been balanced
-    train_balanced_distribution = find_class_distribution(y_train_balanced)
+    train_balanced_distribution = findClassDistribution(y_train_balanced)
 
     fig,axes = plt.subplots(nrows = 1, ncols = 2, figsize = (8,8))
 
@@ -427,18 +441,18 @@ def Task_A_Tasks(dataset):
     plt.show()
 
     #Scaling down the train, val, and test images' pixels' intensities from the range 0-255 to 0-1
-    X_train_scaled = scale_down(X_train_balanced)
-    X_val_scaled = scale_down(X_val)
-    X_test_scaled = scale_down(X_test)
+    X_train_scaled = scaleDown(X_train_balanced)
+    X_val_scaled = scaleDown(X_val)
+    X_test_scaled = scaleDown(X_test)
 
     #============================================|3. Model Training, Hyperparameter Tuning, and Testing|============================================
     #Arrays for storing the number of filters in the 1st, 2nd, 3rd, and 4th conv layers. E.g., pyramid has 40 filters in the 1st layer, 35 fitlers in the 2nd layer, etc.
-    pyramid = [16, 12, 10, 8]
-    reverse_pyramid = [8, 10, 12, 16]
+    pyramid = [32, 48, 64]
+    reverse_pyramid = [64, 48, 32]
 
     #Training + testing models with the pyramid and reverse_pyramid architecture
     for number_of_filters_per_layer in [pyramid, reverse_pyramid]:
-        train_test_cnn(number_of_filters_per_layer, X_train_scaled, y_train_balanced, X_val_scaled, y_val, X_test_scaled, y_test)
+        trainTestCnn(number_of_filters_per_layer, X_train_scaled, y_train_balanced, X_val_scaled, y_val, X_test_scaled, y_test)
 
     #============================================|4. Learning Curve|============================================
     #Array for storing different training set sizes
@@ -449,13 +463,13 @@ def Task_A_Tasks(dataset):
     val_loss = np.zeros((len(training_set_sizes), 1))
 
     #Generating a 40,000 image training set. The training sets used to generate the learning curve function will draw from this main pool of images. E.g., when training_set_size = 100, 100 images will be taken from X_train_balanced to train the model.
-    X_train_balanced, y_train_balanced = increase_class_population(X_train, y_train, 20000)
-    X_train_scaled = scale_down(X_train_balanced)
+    X_train_balanced, y_train_balanced = increaseClassPopulation(X_train, y_train, 20000)
+    X_train_scaled = scaleDown(X_train_balanced)
 
     #Training and evaluating the model's performance when different training set sizes are used.
     for i in range(len(training_set_sizes)):
         #Finding the training and validation losses
-        current_train_loss, current_val_loss = find_loss_vs_sample_size(X_train_scaled, y_train_balanced, X_val_scaled, y_val, training_set_sizes[i], 20000, (28,28,1), pyramid)
+        current_train_loss, current_val_loss = findLossVsSampleSize(X_train_scaled, y_train_balanced, X_val_scaled, y_val, training_set_sizes[i], 20000, (28, 28, 1), pyramid)
 
         #Stores the obtained losses in the arrays
         train_loss[i] = current_train_loss

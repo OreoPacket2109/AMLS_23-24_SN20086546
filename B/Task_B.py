@@ -32,8 +32,8 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.metrics import roc_curve, auc
 
 #Importing functions from Task A
-from A.Task_A import scale_down
-from A.Task_A import find_confusion_matrix
+from A.Task_A import scaleDown
+from A.Task_A import findConfusionMatrix
 
 #Font sizes for plotting to ensure figures have consistent font sizes
 VERY_BIG_FONT = 18
@@ -46,7 +46,7 @@ temp_train_loss = 0
 temp_val_loss = 0
 
 #Function for finding class distribution
-def find_class_distribution(labels):
+def findClassDistribution(labels):
     #Array for storing each class's population. Initiated to be 0s.
     class_distribution = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -67,7 +67,7 @@ def find_class_distribution(labels):
     return class_distribution
 
 #Function for adding noise to a random RGB image from a group of images, images
-def add_noise_to_image(images):
+def addNoiseToImage(images):
     #Constant for storing the number of images
     NUMBER_OF_IMAGES = len(images)
 
@@ -93,7 +93,7 @@ def add_noise_to_image(images):
     return noisy_image
 
 #Function for increasing the population of all classes in the dataset to new_population
-def increase_class_population(images, labels, new_population):
+def increaseClassPopulation(images, labels, new_population):
     #List for storing images in classes 0 and 1
     class0 = []
     class1 = []
@@ -127,7 +127,7 @@ def increase_class_population(images, labels, new_population):
 
 
     #Finds the dataset's current distribution by using the function find_class_distribution()
-    current_distribution = find_class_distribution(labels)
+    current_distribution = findClassDistribution(labels)
 
     #The new distribution is initially set to be equal to the current_distribution
     new_distribution = current_distribution
@@ -145,7 +145,7 @@ def increase_class_population(images, labels, new_population):
         #Keeps adding new images to the list containing images for each class (e.g., class0, class1, ...) until the class has population = new_population
         while(new_distribution[i] < new_population):
             #Generating a noisy image from class current_class
-            new_image = add_noise_to_image(current_class)
+            new_image = addNoiseToImage(current_class)
 
             #Appending the image to new_images
             new_images.append(new_image)
@@ -169,7 +169,7 @@ def increase_class_population(images, labels, new_population):
     return return_images, return_labels
 
 #Function for pulling a specific number of images from the main pool of images
-def sample_from_main_pool(X_main, y_main, sample_size):
+def sampleFromMainPool(X_main, y_main, sample_size):
     return_images = np.zeros((sample_size, 28, 28, 3))
     return_labels = np.zeros((sample_size, 1))
 
@@ -186,7 +186,7 @@ def sample_from_main_pool(X_main, y_main, sample_size):
     return return_images, return_labels
 
 #Function for building the CNN with NUMBER_OF_FILTERS filters in each layer. This CNN can take RGB images as an input.
-def build_CNN(NUMBER_OF_FILTERS, INPUT_SHAPE):
+def buildCNN(NUMBER_OF_FILTERS, INPUT_SHAPE):
 
     #Constants
     KERNEL_SIZE = 3
@@ -243,7 +243,7 @@ def build_CNN(NUMBER_OF_FILTERS, INPUT_SHAPE):
 
 #Function for rounding up y_pred. y_pred[i] is a 9x1 array, wherein each element containts the probability of the image belonging to a class. This function finds the largest probability in each of these arrays, and outputs the corresponding class number.
 #E.g., if y_pred[i] = [0.4 0 0 0 0 0 0 0 0.6], 0.6 is the largest probability, so y_pred_rounded[i] = 8
-def round_up_y_pred(y_pred):
+def roundUpYPred(y_pred):
     #Constants for storing the numbers of predictions and classes
     NUMBER_OF_PREDICTIONS = y_pred.shape[0]
     NUMBER_OF_CLASSES = y_pred.shape[1]
@@ -273,7 +273,7 @@ def round_up_y_pred(y_pred):
     return y_pred_rounded
 
 #Function for getting performance metrics
-def find_performance_metric(y_test, y_pred):
+def findPerformanceMetric(y_test, y_pred):
     recall = recall_score(y_test, y_pred, average='micro')
     precision = precision_score(y_test, y_pred, average='micro')
     f1 = f1_score(y_test, y_pred, average='micro')
@@ -284,7 +284,7 @@ def find_performance_metric(y_test, y_pred):
     print("Accuracy score: " +str(accuracy))
 
 #Function for training cnn
-def train_test_cnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, X_test, y_test):
+def trainTestCnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, X_test, y_test):
 
     #==============================|3.1. Training the Model|==============================
     #Constants
@@ -293,7 +293,7 @@ def train_test_cnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, 
     BATCH_SIZE = 64
 
     #Building the CNN with the number of filters in each layer specified by number_of_filters_per_layer
-    cnn = build_CNN(number_of_filters_per_layer, INPUT_SHAPE)
+    cnn = buildCNN(number_of_filters_per_layer, INPUT_SHAPE)
 
     #Training the cnn. Training history is stored in history.
     history = cnn.fit(X_train, y_train, epochs = EPOCHS, batch_size = BATCH_SIZE, validation_data = (X_val, y_val))
@@ -328,20 +328,20 @@ def train_test_cnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, 
     y_pred = cnn.predict(X_test)
 
     #Reformat the output of y_pred from a 2D matrix (wherein each prediction is a 9x1 vector) to a 1D array (wherein each prediction is a scalar number)
-    y_pred = round_up_y_pred(y_pred)
+    y_pred = roundUpYPred(y_pred)
 
     #Finding the confusion matrix and performance metrics (i.e., accuracy, f1 score, etc.)
-    find_confusion_matrix(y_test, y_pred, "Confusion Matrix")
-    find_performance_metric(y_test, y_pred)
+    findConfusionMatrix(y_test, y_pred, "Confusion Matrix")
+    findPerformanceMetric(y_test, y_pred)
 
 #Function for finding the model loss when different training set sizes are used
-def find_loss_vs_sample_size(X_train, y_train, X_val, y_val, INPUT_SHAPE, NUMBER_OF_FILTERS_PER_LAYER):
+def findLossVsSampleSize(X_train, y_train, X_val, y_val, INPUT_SHAPE, NUMBER_OF_FILTERS_PER_LAYER):
     #Constants
     EPOCHS = 3
     BATCH_SIZE = 64
 
     #Building and training the model
-    cnn = build_CNN(NUMBER_OF_FILTERS_PER_LAYER, INPUT_SHAPE)
+    cnn = buildCNN(NUMBER_OF_FILTERS_PER_LAYER, INPUT_SHAPE)
     history = cnn.fit(X_train, y_train, epochs = EPOCHS, batch_size = BATCH_SIZE, validation_data = (X_val, y_val))
 
     #Finding the training and validation loss after the model has been fully trained
@@ -364,9 +364,9 @@ def Task_B_Tasks(dataset):
     y_test = dataset['test_labels']
 
     #Finding the class distribution for each set
-    train_distribution = find_class_distribution(y_train)
-    val_distribution = find_class_distribution(y_val)
-    test_distribution = find_class_distribution(y_test)
+    train_distribution = findClassDistribution(y_train)
+    val_distribution = findClassDistribution(y_val)
+    test_distribution = findClassDistribution(y_test)
 
     #Plotting the class distribution for each set
     fig, axes = plt.subplots(nrows = 1, ncols = 3, figsize = (15,15))
@@ -383,14 +383,14 @@ def Task_B_Tasks(dataset):
 
     #============================================|2. Data Pre-Processing|============================================
     #Creating the main pool of images for the model to pull from during the training stage, since the model will be trained at different training set sizes to find the optimal training set size. The pool contains 12, 000 images from each class.
-    X_train_balanced_pool, y_train_balanced_pool = increase_class_population(X_train, y_train, 21000)
+    X_train_balanced_pool, y_train_balanced_pool = increaseClassPopulation(X_train, y_train, 21000)
 
     #Scales down image pixel values from 0-255 to 0-1
-    X_train_balanced_pool = scale_down(X_train_balanced_pool)
+    X_train_balanced_pool = scaleDown(X_train_balanced_pool)
 
     #Taking 10 000 images from the main pool to train on
-    X_train_balanced, y_train_balanced = sample_from_main_pool(X_train_balanced_pool, y_train_balanced_pool, 21000)#sample_from_main_pool(X_train_balanced_pool, y_train_balanced_pool, 22000)
-    balanced_train_distribution = find_class_distribution(y_train_balanced)
+    X_train_balanced, y_train_balanced = sampleFromMainPool(X_train_balanced_pool, y_train_balanced_pool, 21000)#sample_from_main_pool(X_train_balanced_pool, y_train_balanced_pool, 22000)
+    balanced_train_distribution = findClassDistribution(y_train_balanced)
 
     #Plotting pie charts to compare the training set's distribution before and after it is balanced
     fig, axes = plt.subplots(nrows = 1, ncols = 2, figsize = (10,10))
@@ -403,8 +403,8 @@ def Task_B_Tasks(dataset):
     plt.show()
 
     #Scaling down the validation and test images from 0-255 to 0-1
-    X_val_scaled = scale_down(X_val)
-    X_test_scaled = scale_down(X_test)
+    X_val_scaled = scaleDown(X_val)
+    X_test_scaled = scaleDown(X_test)
 
     #============================================|3. Model Training, Hyperparamter Tuning, and Testing|============================================
     #Arrays containing the number of filters per convolution layer for the pyramid and reverse-pyramid structures
@@ -412,8 +412,8 @@ def Task_B_Tasks(dataset):
     reverse_pyramid = [64, 56, 50, 48, 40, 32]
 
     #Building the cnn, training it, validating it, and testing it for both the pyramid and reverse-pyramid structures
-    train_test_cnn(pyramid, X_train_balanced, y_train_balanced, X_val_scaled, y_val, X_test_scaled, y_test)
-    train_test_cnn(reverse_pyramid, X_train_balanced, y_train_balanced, X_val_scaled, y_val, X_test_scaled, y_test)
+    trainTestCnn(pyramid, X_train_balanced, y_train_balanced, X_val_scaled, y_val, X_test_scaled, y_test)
+    trainTestCnn(reverse_pyramid, X_train_balanced, y_train_balanced, X_val_scaled, y_val, X_test_scaled, y_test)
 
     #============================================|4. Learning Curve|============================================
     #Array containing the different training set sizes the model is trained on
@@ -433,10 +433,10 @@ def Task_B_Tasks(dataset):
         current_training_set_size = training_set_sizes[i]
 
         #Takes training_set_size[i] images from the main dataset to use to train/validate the model
-        current_X, current_y = sample_from_main_pool(X_train_balanced_pool, y_train_balanced_pool, current_training_set_size)
+        current_X, current_y = sampleFromMainPool(X_train_balanced_pool, y_train_balanced_pool, current_training_set_size)
 
         #Storing the training and validation loss when current_training_set_size training points are used
-        train_loss[i], val_loss[i] = find_loss_vs_sample_size(current_X, current_y, X_val_scaled, y_val, (28, 28, 3), pyramid)
+        train_loss[i], val_loss[i] = findLossVsSampleSize(current_X, current_y, X_val_scaled, y_val, (28, 28, 3), pyramid)
 
     #Plotting the training and validation losses against the training set size
     plt.figure(figsize=(8, 6))
