@@ -1,29 +1,25 @@
 # Applied Machine Learning Systems (2023-24) Code
-Project documents the development of CNNs used in a binary and multiclass classification task.
+## Project Description
+Code for ELEC0134
 
-Can output learning curves, confusion matrices, and compute the models' accuracies.
+Code develops CNNs for binary and multiclass classification.
 
-Images used to train the models are obtained from MedMNIST (add link)
+Two CNNs developed for each task to compare different structures' performances.
 
-## Installation
+Code prints out confusion matrices, accuracy scores, and learning curves. (Example images)
 
-1. Copy the project files to the user's local machine.
-2. Install required libraries (look this up later)
+## Project Organisation
+Folder arrangement.
 
-## Running the Code
-How to use the code.
+All files can be run from main.py
 
-Program will prompt user if they want to carry out task a or b first, or exit program.
+Task A tasks are run in Task_A.py, Task B tasks are run from Task_B.py.
 
-Once in each task, program will ask user if they want to see the learning curves. Some users may not want to see this because it takes time to generate, so they may say no.
+## Running the Project
+User will be directed to a menu screen where they will be prompted to choose if they want to run Task A or Task B. Must answer A, B, or X.
 
-Task A will additionally ask the user if they want to see the misclassified images. Users are free to say no.
+User will also be asked if they want to see the learning curvse. Learning curves take lots of computational power to generate, and some users' machines may not be able to handle it, so they are given the option to skip this stage.
 
-Task B does not have this function because Task B has lots of pictures, and printing them out will clog up the user's screen, so this function has not been implemented. But users are free to add this to future versions of the code (please refer to contributing guidelines)
+Program will prompt the user if they want to see misclassified images for Task A, but not Task B. This is because there are more images in Task B than A, making it messy to print them all out.
 
-Once the task is done, the user is taken back to the main screen.
-
-Maybe include flowchart for this section?
-
-## Credits
-Acknowledgements, credits, external libraries used
+## Required Packages
