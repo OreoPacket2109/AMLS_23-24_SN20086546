@@ -1,12 +1,12 @@
-#importing libraries
+#============================|Importing libraries|============================
 #General stuff
 import cv2
 import numpy as np
 import pandas as pd
 import random
+import matplotlib.pyplot as plt
 
 #Tensorflow
-import matplotlib.pyplot as plt
 import tensorflow as tf
 import keras
 from PIL import Image
@@ -39,6 +39,11 @@ SMALL_FONT = 12
 
 #Colors for pie charts to ensure figures have consistent colours
 my_colors = ['cornflowerblue', 'darkorange']
+
+#List for storing the index of misclassified images for printing out after testing
+class0_misclassified_index = []
+class1_misclassified_index = []
+misclassified_dict = {0: class0_misclassified_index, 1: class1_misclassified_index}
 
 #Function for returning random noisy image from a set of images
 def addNoiseToImage(images):
@@ -134,21 +139,25 @@ def increaseClassPopulation(images, labels, new_population):
     #Returns the new dataset and its corresponding labels
     return return_images, return_labels
 
-#Function for building cnn. NUMBER_OF_FILTERS stores the number of filters the 1st, 2nd, 3rd, and 4th convolution layers in the CNN has. INPUT_SHAPE stores the shape of the input image.
+#Function for building cnn. NUMBER_OF_FILTERS stores the number of filters in each convolution layer in the CNN. INPUT_SHAPE stores the shape of the input image.
 def buildCNN(NUMBER_OF_FILTERS, INPUT_SHAPE):
-
     #Constants
     KERNEL_SIZE = 3
     STRIDES = 1
 
     cnn = Sequential()
 
+    #Adding the first two convolution layers
     cnn.add(Conv2D(NUMBER_OF_FILTERS[0], kernel_size = (KERNEL_SIZE,KERNEL_SIZE), strides = STRIDES, padding = 'same', activation = 'relu', input_shape = (INPUT_SHAPE[0], INPUT_SHAPE[1], INPUT_SHAPE[2])))
-    cnn.add(Conv2D(NUMBER_OF_FILTERS[1], kernel_size=(KERNEL_SIZE, KERNEL_SIZE), strides=STRIDES, padding='same',
-                   activation='relu'))
+    cnn.add(Conv2D(NUMBER_OF_FILTERS[1], kernel_size=(KERNEL_SIZE, KERNEL_SIZE), strides=STRIDES, padding='same', activation='relu'))
+
+    #Adding the first max pooling layer
     cnn.add(MaxPooling2D(pool_size=(2, 2)))
-    cnn.add(Conv2D(NUMBER_OF_FILTERS[2], kernel_size=(KERNEL_SIZE, KERNEL_SIZE), strides=STRIDES, padding='same',
-                   activation='relu'))
+
+    #Adding the next convolution layer
+    cnn.add(Conv2D(NUMBER_OF_FILTERS[2], kernel_size=(KERNEL_SIZE, KERNEL_SIZE), strides=STRIDES, padding='same', activation='relu'))
+
+    #Adding the second max pooling layer
     cnn.add(MaxPooling2D(pool_size=(2, 2)))
 
     #Convert output of the convolutional layer into a 1-dimensional array
@@ -199,13 +208,7 @@ def roundUpYPred(y_pred, threshold):
 
 #Function for getting performance metrics
 def findPerformanceMetric(y_test, y_pred):
-    recall = recall_score(y_test, y_pred)
-    precision = precision_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
     accuracy = accuracy_score(y_test, y_pred)
-    print("Recall score: " + str(recall))
-    print("Precision score: " + str(precision))
-    print("F1 score: " + str(f1))
     print("Accuracy score: " +str(accuracy))
 
 #Function for printing out confusion matrix
@@ -220,43 +223,25 @@ def findConfusionMatrix(y_test, y_pred, TITLE):
     plt.suptitle(TITLE, fontsize = BIG_FONT)
     plt.show()
 
-#Function for training and testing the CNN which has number_of_filters_per_layer in its 1st, 2nd, 3rd, and 4th convolutional layers (number_of_filters_per_layer is an array storing the number of filters in the 1st, 2nd, 3rd, and 4th conv layers).
-def trainTestCnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, X_test, y_test):
+#Function for training and testing the CNN which has number_of_filters_per_layer convolutional layers (number_of_filters_per_layer is an array storing the number of filters in each convolution layer).
+def trainTestCnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, X_test, y_test, epoch, train_set_size):
 
-    #==============================|3.1. Training the Model|==============================
+    #==============================|1. Training the Model|==============================
     #Constants
     INPUT_SHAPE = (28,28,1)
-    EPOCHS = 15
+    EPOCHS = epoch
     BATCH_SIZE = 32
-
-    #Weights are tuned based on the results from the validation dataset.
-    weights = {0: 1, 1: 1}
 
     #Building the CNN
     cnn = buildCNN(number_of_filters_per_layer, INPUT_SHAPE)
 
-    #Storing the model's accuracy at each epoch.
-    history = cnn.fit(X_train, y_train, epochs = EPOCHS, batch_size = BATCH_SIZE, validation_data = (X_val, y_val), class_weight = weights)
+    #Sampling images from the main training set pool. Number of images used = optimal training set size for this model.
+    X_train_new, y_train_new = sampleFromMainPool(X_train, y_train, train_set_size)
 
-    #==============================|3.2. Epoch and Threshold Tuning|==============================
+    #Training the CNN
+    cnn.fit(X_train_new, y_train_new, epochs = EPOCHS, batch_size = BATCH_SIZE, validation_data = (X_val, y_val))
 
-    #Plotting the model's loss vs. epoch curve
-    training_loss = history.history['loss']
-    val_loss = history.history['val_loss']
-    epochs = range(1, len(training_loss) + 1)
-
-    plt.figure(figsize=(8, 6))
-    plt.plot(epochs, training_loss, label = 'Training')
-    plt.plot(epochs, val_loss, label = 'Validation')
-    plt.title('Training and Validation Loss', fontsize = BIG_FONT)
-    plt.legend(['Training Loss', 'Validation Loss'], fontsize = MEDIUM_FONT)
-    plt.xlabel('Epochs', fontsize = MEDIUM_FONT)
-    plt.ylabel('Loss', fontsize = MEDIUM_FONT)
-    plt.xticks(fontsize=SMALL_FONT)
-    plt.yticks(fontsize=SMALL_FONT)
-    plt.grid()
-    plt.show()
-
+    #==============================|2. Threshold Tuning|==============================
     #Finding the threshold based on the validation set.
     y_pred = cnn.predict(X_val)
 
@@ -291,7 +276,7 @@ def trainTestCnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, X_
     plt.grid()
     plt.show()
 
-    #==============================|3.3. Testing the Model|==============================
+    #==============================|3. Testing the Model|==============================
 
     #Predicting the labels for images in the test set
     y_pred = cnn.predict(X_test)
@@ -303,19 +288,43 @@ def trainTestCnn(number_of_filters_per_layer, X_train, y_train, X_val, y_val, X_
     findConfusionMatrix(y_test, y_pred, 'Confusion Matrix')
     findPerformanceMetric(y_test, y_pred)
 
-    #==============================|3.4. Printing Out Misclassified Images for Analysis|==============================
-    #Scale pixel intensities in test images back up from 0-1 to 0-255
-    X_test_scaled_up = X_test*255
+    #==============================|4. Printing Out Misclassified Images for Analysis|==============================
 
-    #Goes through all images in test set to find misclassified images by comparing the true labels (y_test) to the predicted labels (y_pred)
-    #for i in range(len(y_test)):
-        #If y_test[i] != y_pred[i], the image is misclassified, so we print it out.
-    #    if(y_test[i] != y_pred[i]):
-    #        correct_label = str(y_test[i])
-    #        incorrectly_classified_image = X_test_scaled_up[i]
-    #        plt.imshow(incorrectly_classified_image)
-    #        plt.title("Correct Label: " + correct_label, fontsize = 14)
-    #        plt.show()
+    #Asking the user if they want to see the misclassified images. This is only an option for Task A because there are fewer misclassified images in Task A than B. Having this option in Task B will result in too many images being printed out.
+    see_misclassified_images = input("Would you like to see the misclassified images? Print 'Y' if you do, and 'N' if you do not.")
+
+    #User can only say Y or N. If the user's answer is anything else, the program will keep prompting the user to re-enter their answer.
+    while(see_misclassified_images != 'Y' and see_misclassified_images != 'N'):
+        see_misclassified_images = input("Please enter either 'Y' or 'N'.")
+
+    #The program will only print out the misclassified images if the user entered Y. Otherwise, it will skip this step.
+    if(see_misclassified_images == 'Y'):
+        #Scale X_test back up so that it can be shown on a plot
+        X_test = X_test*255
+
+        #Goes through all images in the test set to find misclassified images by comparing the true labels (y_test) to the predicted labels (y_pred)
+        for i in range(len(y_test)):
+            #If y_test[i] != y_pred[i], the image is misclassified, so it is appended to either misclassified_dict[0] (if true label = 0) or misclassiied_dict[1] (if true label = 1)
+            if(y_test[i] != y_pred[i]):
+                misclassified_dict[int(y_test[i])].append(int(i))
+
+        #Prints out all the false positive images
+        for i in range(len(class0_misclassified_index)):
+            plot_title = "Correct Label: " + str(y_test[class0_misclassified_index[i]])
+            print_image = (X_test[class0_misclassified_index[i]]).astype('uint8')
+            print_image = cv2.cvtColor(print_image, cv2.COLOR_RGB2BGR)
+            plt.imshow(print_image)
+            plt.title(plot_title, fontsize = BIG_FONT)
+            plt.show()
+
+        #Prints out all the false negative images
+        for i in range(len(class1_misclassified_index)):
+            plot_title = "Correct Label: " + str(y_test[class1_misclassified_index[i]])
+            print_image = (X_test[class1_misclassified_index[i]]).astype('uint8')
+            print_image = cv2.cvtColor(print_image, cv2.COLOR_RGB2BGR)
+            plt.imshow(print_image)
+            plt.title(plot_title, fontsize = BIG_FONT)
+            plt.show()
 
 #Function for finding the class distribution in each dataset.
 def findClassDistribution(labels):
@@ -336,31 +345,55 @@ def findClassDistribution(labels):
     #Returns the dataset's class distribution
     return class_distribution
 
+#Function for sampling sample_size images from the main pool X_main
+def sampleFromMainPool(X_main, y_main, sample_size):
+    #Arrays for storing the images to be returned, and their corresponding labels
+    return_images = np.zeros((sample_size, 28, 28))
+    return_labels = np.zeros((sample_size, 1))
 
-def findLossVsSampleSize(X_train, y_train, X_val, y_val, TRAINING_SET_SIZE, TRAINING_SET_INITIAL_POPULATION, INPUT_SHAPE, number_of_filters_per_layer):
-    current_training_set_images = np.zeros((TRAINING_SET_SIZE, 28, 28))
-    current_training_set_labels = np.zeros((TRAINING_SET_SIZE, 1))
-    EPOCHS = 8
+    #Saves the i^th image into return_images until sample_size images have been copied over
+    for i in range(sample_size):
+        return_images[i] = X_main[i]
+        return_labels[i] = y_main[i]
+
+    #Flattens out return_labels
+    return_labels = np.array(return_labels)
+    return_labels = return_labels.flatten()
+    return_labels = return_labels.astype(int)
+
+    #Returns the images and their corresponding labels
+    return return_images, return_labels
+
+#Function for finding the training and validation loss for a model
+def findLossVsSampleSize(X_train, y_train, X_val, y_val, TRAINING_SET_SIZE, EPOCH, INPUT_SHAPE, number_of_filters_per_layer):
+    #Sampling TRAINING_SET_SIZE images from the main pool.
+    current_training_set_images, current_training_set_labels = sampleFromMainPool(X_train, y_train, TRAINING_SET_SIZE)
+    EPOCHS = EPOCH
     BATCH_SIZE = 32
-    weights = {0:1, 1:1}
 
-    for i in range(TRAINING_SET_SIZE):
-        random_index = random.randint(0, TRAINING_SET_INITIAL_POPULATION-1)
-        current_training_set_images[i] = X_train[random_index]
-        current_training_set_labels[i] = y_train[random_index]
-
+    #Building and training the CNN
     cnn = buildCNN(number_of_filters_per_layer, INPUT_SHAPE)
-    history = cnn.fit(current_training_set_images, current_training_set_labels, epochs = EPOCHS, batch_size = BATCH_SIZE, class_weight = weights, validation_data=(X_val, y_val))
+    cnn.fit(current_training_set_images, current_training_set_labels, epochs = EPOCHS, batch_size = BATCH_SIZE, validation_data=(X_val, y_val))
 
-    train_loss = cnn.evaluate(X_train, y_train)
+    #Extracting the training and validation losses
+    train_loss = cnn.evaluate(current_training_set_images, current_training_set_labels)
     val_loss = cnn.evaluate(X_val, y_val)
 
+    #Returning the training and validation losses
     return train_loss[0], val_loss[0]
 
 #Function for carrying out Task A of the assignment
 def Task_A_Tasks(dataset):
-    #============================================|1. Analysing given dataset|============================================
+    #============================================|1. Analysing Given Dataset|============================================
 
+    #Asking the user if they want to see the learning curves (i.e., the losses vs. training set size, and losses vs. epoch curves). It takes time to compute these, so some users may not want to see them.
+    user_choice = input("Would you also like to see the learning curves? Enter 'Y' if you do, and 'N' if you do not.")
+
+    #Keeps prompting the user until they enter either 'Y' or 'N'
+    while(user_choice != 'Y' and user_choice != 'N'):
+        user_choice = input("Please enter either 'Y' or 'N'.")
+
+    # ============================================|1.1. Splitting the Dataset into Train, Val, and Test Sets|============================================
     #Splitting provided dataset into train, val, test sets
     X_train = dataset['train_images']
     X_val = dataset['val_images']
@@ -375,7 +408,7 @@ def Task_A_Tasks(dataset):
     val_distribution = findClassDistribution(y_val)
     test_distribution = findClassDistribution(y_test)
 
-    #Plotting the class distribution for each set
+    #Plotting the class distribution for each set as a 1x3 plot
     fig, axes = plt.subplots(nrows = 1, ncols = 3, figsize = (10,10))
 
     axes[0].pie(train_distribution, autopct='%1.1f%%', textprops={'fontsize': BIG_FONT}, colors = my_colors)
@@ -388,23 +421,30 @@ def Task_A_Tasks(dataset):
     plt.tight_layout()
     plt.show()
 
-    #Plotting images from class 0 and 1
-    fig, axes = plt.subplots(nrows = 1, ncols = 2, figsize = (10,10))
+    #============================================|1.2. Plotting Sample Images|============================================
+    #Plotting the images as a 1x2 plot
+    #The indexes 5 and 2 are chosen because they best visually represent what a "Normal" and "Pnuemonia" scan would look like. E.g., a normal scan would show a transparent chest without any white hazy areas.
+    #These indexes are obtained by printing out a few images from the training set on a separate code (this code just prints out the first 20 images from the training set, along with their labels), and the images that best represent the concept of a "normal" and "pneumonia" scan are chosen to be shown here.
+    #This does not affect the models' performance, these images are just chosen because they look good and can provide the reader with a good understanding of what normal and pnuemonia images look like.
+    fig, axes = plt.subplots(nrows = 1, ncols = 2, figsize = (5,5))
     class0_image = cv2.cvtColor(X_train[5], cv2.COLOR_RGB2BGR)
     axes[0].imshow(class0_image)
-    axes[0].set_title("Class 0", fontsize = VERY_BIG_FONT)
+    axes[0].set_title("Class 0 (Normal)", fontsize = BIG_FONT)
 
     class1_image = cv2.cvtColor(X_train[2], cv2.COLOR_RGB2BGR)
     axes[1].imshow(class1_image)
-    axes[1].set_title("Class 1", fontsize = VERY_BIG_FONT)
+    axes[1].set_title("Class 1 (Pneumonia)", fontsize = BIG_FONT)
     plt.tight_layout()
     plt.show()
 
     #============================================|2. Data Pre-Processing|============================================
-    #Increasing the population of the training set to 20 000 (10 000 for class0, 10 000 for class1). This also effectively balances the training set, since both classes now have the same population.
-    X_train_balanced, y_train_balanced = increaseClassPopulation(X_train, y_train, 10000)
 
-    #Plotting original image vs. noisy image
+    #============================================|2.1. Creating the Main Pool of Images|============================================
+    #Increasing the population of the training set to 20 000 (10 000 for class0, 10 000 for class1) by adding noisy images to the original dataset. This also balances the training set, so both classes now have the same population.
+    X_train_main_pool, y_train_main_pool = increaseClassPopulation(X_train, y_train, 20000)
+
+    #============================================|2.2. Plotting a Noisy Image vs. Its Original|============================================
+    #Generating an example of a noisy image. This is the same method used in addNoiseToImage, which is used by the function increaseClassPopulation to increase the training set size.
     original_image = X_train[0]
     mean = 0
     standard_deviation = random.uniform(1, 5)
@@ -412,22 +452,24 @@ def Task_A_Tasks(dataset):
     noisy_image = Image.fromarray(np.clip(original_image + noise, 0, 255))
     noisy_image = np.array(noisy_image)
 
-    plt.subplot(1,2,1)
+    #Plotting the original image on the left, and its noisy variant on the right
+    fig, axes = plt.subplots(nrows = 1, ncols = 2, figsize = (5,5))
     original_image = cv2.cvtColor(original_image, cv2.COLOR_RGB2BGR)
-    plt.imshow(original_image)
-    plt.title("Original Image")
+    axes[0].imshow(original_image)
+    axes[0].set_title("Original Image", fontsize = BIG_FONT)
 
-    plt.subplot(1,2,2)
     noisy_image = cv2.cvtColor(noisy_image, cv2.COLOR_RGB2BGR)
-    plt.imshow(noisy_image)
-    plt.title("Noisy Image")
+    axes[1].imshow(noisy_image)
+    axes[1].set_title("Noisy Image", fontsize = BIG_FONT)
 
     plt.tight_layout()
     plt.show()
 
-    #Plotting the old training set's class distribution vs. the new training set's distribution after the dataset has been balanced
-    train_balanced_distribution = findClassDistribution(y_train_balanced)
+    #============================================|2.3. Comparing Unbalanced and Balanced Training Sets|============================================
+    #Finding the balanced training set's class distribution
+    train_balanced_distribution = findClassDistribution(y_train_main_pool)
 
+    #Plots the unbalanced training set's (from PneumoniaMNIST, without adding any augmented images to it) distribution to the left, and the balanced training set's distribution to the right.
     fig,axes = plt.subplots(nrows = 1, ncols = 2, figsize = (8,8))
 
     axes[0].pie(train_distribution, autopct='%1.1f%%', textprops={'fontsize': MEDIUM_FONT}, colors = my_colors)
@@ -440,50 +482,95 @@ def Task_A_Tasks(dataset):
     plt.tight_layout()
     plt.show()
 
+    #============================================|2.4. Scaling Down Images|============================================
     #Scaling down the train, val, and test images' pixels' intensities from the range 0-255 to 0-1
-    X_train_scaled = scaleDown(X_train_balanced)
+    X_train_main_pool = scaleDown(X_train_main_pool)
     X_val_scaled = scaleDown(X_val)
     X_test_scaled = scaleDown(X_test)
 
     #============================================|3. Model Training, Hyperparameter Tuning, and Testing|============================================
-    #Arrays for storing the number of filters in the 1st, 2nd, 3rd, and 4th conv layers. E.g., pyramid has 40 filters in the 1st layer, 35 fitlers in the 2nd layer, etc.
+    #Arrays for storing the number of filters in each conv layers
     pyramid = [32, 48, 64]
     reverse_pyramid = [64, 48, 32]
+    architectures = [pyramid, reverse_pyramid]
+
+    #Refer to Section 4.3.1 in the report for where these numbers are obtained from
+    optimal_epoch = [4, 2]
+    optimal_set_size = [20000, 15000]
 
     #Training + testing models with the pyramid and reverse_pyramid architecture
-    for number_of_filters_per_layer in [pyramid, reverse_pyramid]:
-        trainTestCnn(number_of_filters_per_layer, X_train_scaled, y_train_balanced, X_val_scaled, y_val, X_test_scaled, y_test)
+    for i in range(2):
+        trainTestCnn(architectures[i], X_train_main_pool, y_train_main_pool, X_val_scaled, y_val, X_test_scaled, y_test, optimal_epoch[i], optimal_set_size[i])
 
     #============================================|4. Learning Curve|============================================
-    #Array for storing different training set sizes
-    training_set_sizes = [100, 500, 1000, 5000, 10000, 15000, 20000, 25000, 30000, 35000]
 
-    #Arrays for storing the train and validation losses when a specific training set size is used
-    train_loss = np.zeros((len(training_set_sizes), 1))
-    val_loss = np.zeros((len(training_set_sizes), 1))
+    #Program will run this section only if the user chose Y (they want to see the learning curve) earlier.
+    if(user_choice == 'Y'):
 
-    #Generating a 40,000 image training set. The training sets used to generate the learning curve function will draw from this main pool of images. E.g., when training_set_size = 100, 100 images will be taken from X_train_balanced to train the model.
-    X_train_balanced, y_train_balanced = increaseClassPopulation(X_train, y_train, 20000)
-    X_train_scaled = scaleDown(X_train_balanced)
+        #Array for storing different training set sizes
+        training_set_sizes = [100, 500, 1000, 5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000]
 
-    #Training and evaluating the model's performance when different training set sizes are used.
-    for i in range(len(training_set_sizes)):
-        #Finding the training and validation losses
-        current_train_loss, current_val_loss = findLossVsSampleSize(X_train_scaled, y_train_balanced, X_val_scaled, y_val, training_set_sizes[i], 20000, (28, 28, 1), pyramid)
+        #Arrays for storing the train and validation losses when a specific training set size is used
+        train_loss = np.zeros((len(training_set_sizes), 1))
+        val_loss = np.zeros((len(training_set_sizes), 1))
 
-        #Stores the obtained losses in the arrays
-        train_loss[i] = current_train_loss
-        val_loss[i] = current_val_loss
+        #Training and evaluating the model's performance when different training set sizes and epochs are used
+        for i in range(2):
+            #============================================|4.1. Losses vs. Training Set Size|============================================
+            #Training and evaluating the model's performance when different training set sizes are used.
+            for j in range(len(training_set_sizes)):
+                #Finding the training and validation losses
+                current_train_loss, current_val_loss = findLossVsSampleSize(X_train_main_pool, y_train_main_pool, X_val_scaled, y_val, training_set_sizes[j], optimal_epoch[i], (28, 28, 1), architectures[i])
 
-    #Plotting the training and validation losses against the training set size
-    plt.figure(figsize=(8, 6))
-    plt.plot(training_set_sizes, train_loss, label = 'Training Loss')
-    plt.plot(training_set_sizes, val_loss, label = 'Validation Loss')
-    plt.xlabel('Training Set Size', fontsize = MEDIUM_FONT)
-    plt.ylabel('Loss', fontsize = MEDIUM_FONT)
-    plt.xticks(fontsize=SMALL_FONT)
-    plt.yticks(fontsize=SMALL_FONT)
-    plt.title('Learning Curve', fontsize = BIG_FONT)
-    plt.legend(['Training Loss', 'Validation Loss'], fontsize = MEDIUM_FONT)
-    plt.grid()
-    plt.show()
+                #Stores the obtained losses in the arrays
+                train_loss[j] = current_train_loss
+                val_loss[j] = current_val_loss
+
+            #Flattening out the train and validation losses
+            train_loss = np.array(train_loss)
+            train_loss = train_loss.flatten()
+
+            val_loss = np.array(val_loss)
+            val_loss = val_loss.flatten()
+
+            #Plotting the training and validation losses against the training set size
+            plt.figure(figsize=(8, 6))
+            plt.plot(training_set_sizes, train_loss, label = 'Training Loss')
+            plt.plot(training_set_sizes, val_loss, label = 'Validation Loss')
+            plt.xlabel('Training Set Size', fontsize = MEDIUM_FONT)
+            plt.ylabel('Loss', fontsize = MEDIUM_FONT)
+            plt.xticks(fontsize=SMALL_FONT)
+            plt.yticks(fontsize=SMALL_FONT)
+            plt.title('Learning Curve', fontsize = BIG_FONT)
+            plt.legend(['Training Loss', 'Validation Loss'], fontsize = MEDIUM_FONT)
+            plt.grid()
+            plt.show()
+
+            #============================================|4.2. Losses vs. Epoch Number|============================================
+            #Building the model
+            cnn = buildCNN(architectures[i], (28,28,1))
+
+            #Sampling optimal_set_size[i] images from the training set. i.e., the optimal number of images (for this model) will be used to train the model.
+            X_train_new, y_train_new = sampleFromMainPool(X_train_main_pool, y_train_main_pool, optimal_set_size[i])
+
+            #Storing the training and validation losses across each epoch. Model will be trained across 15 epochs.
+            history = cnn.fit(X_train_new, y_train_new, epochs=15, batch_size=32, validation_data=(X_val_scaled, y_val))
+
+            #Plotting the model's loss vs. epoch curve
+            training_loss = history.history['loss']
+            validation_loss = history.history['val_loss']
+            epochs = range(1, len(training_loss) + 1)
+
+            plt.figure(figsize=(8, 6))
+            plt.plot(epochs, training_loss, label='Training')
+            plt.plot(epochs, validation_loss, label='Validation')
+            plt.title('Training and Validation Loss', fontsize=BIG_FONT)
+            plt.legend(['Training Loss', 'Validation Loss'], fontsize=MEDIUM_FONT)
+            plt.xlabel('Epochs', fontsize=MEDIUM_FONT)
+            plt.ylabel('Loss', fontsize=MEDIUM_FONT)
+            plt.xticks(fontsize=SMALL_FONT)
+            plt.yticks(fontsize=SMALL_FONT)
+            plt.grid()
+            plt.show()
+    else:
+        return
