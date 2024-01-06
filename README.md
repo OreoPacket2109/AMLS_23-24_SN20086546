@@ -39,7 +39,7 @@ pathmnist.npz and pneumoniamnist.npz are not included in this project repository
 | Package Name | Version |
 | -------- | -------- |
 | matplotlib | 3.7.2 |
-| numpy |  | 1.24.3 |
+| numpy | 1.24.3 |
 | random | 1.2.4 |
 | scikit-learn | 1.3.0 |
 | tensorflow | 2.15.0 |
