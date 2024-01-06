@@ -47,8 +47,11 @@ pathmnist.npz and pneumoniamnist.npz are not included in this project repository
 For more information, refer to _requirements.txt_ in the repository.
 
 ## Running the Project
-User will be directed to a menu screen where they will be prompted to choose if they want to run Task A or Task B. Must answer A, B, or X.
-
-User will also be asked if they want to see the learning curvse. Learning curves take lots of computational power to generate, and some users' machines may not be able to handle it, so they are given the option to skip this stage.
-
-Program will prompt the user if they want to see misclassified images for Task A, but not Task B. This is because there are more images in Task B than A, making it messy to print them all out.
+1. Run the project from main.py
+2. The program will ask the user if they want to run Task A, B, or exit the program:
+> Enter 'A' to run Task A, 'B' to run Task B, and 'X' to exit the program.
+The user must enter either A, B, or X. The program will keep asking the user until they enter one of the three input options.
+> 
+If the user entered A, the program will run Task_A.py
+If the user entered B, the program will run Task_B.py
+If the user entered X, the program will terminate itself.
