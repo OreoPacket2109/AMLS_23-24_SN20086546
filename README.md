@@ -1,14 +1,21 @@
 # Applied Machine Learning Systems (2023-24) Code
 ## Project Description
-Code for ELEC0134
+This project contains the code for the ELEC0134 assignment. The code develops CNNs for a binary classification and a multiclass classification tasks. Two types of CNNs -- one following the "pyramid" structure, and the other following the "reverse-pyramid" structure -- will be developed for each task.
 
-Code develops CNNs for binary and multiclass classification.
+The binary classification task involves classifying grayscale images of anterior posterior chest X-ray scans from the PneumoniaMNIST dataset into two classes: normal and pneumonia.
 
-Two CNNs developed for each task to compare different structures' performances.
+The multiclass classification task involves classifying RGB images of colorectal tissues from the PathMNIST dataset into nine classes: Adipose (ADI), background (BACK), debris (DEB), lymphocytes (LYM), mucus (MUC), smooth muscle (MUS), normal colon mucosa (NORM), cancer-associated stroma (STR), colorectal adenocarcinoma epithelium (TUM).
 
-Code prints out confusion matrices, accuracy scores, and learning curves. (Example images)
+Both datasets can be found [here](https://medmnist.com/).
+
+This code will also print out each develped CNN's confusion matrix, accuracy score, and learning curves (losses vs. epoch, and losses vs. training set size).
 
 ## Project Organisation
+The project folder is arranged as follows:
+- a
+  - a
+  - 
+
 Folder arrangement.
 
 All files can be run from main.py
