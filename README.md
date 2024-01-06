@@ -49,27 +49,19 @@ For more information, refer to _requirements.txt_ in the repository.
 ## Running the Project
 1. Run the project from main.py
 2. The program will ask the user if they want to run Task A, B, or exit the program:
-> Enter 'A' to run Task A, 'B' to run Task B, and 'X' to exit the program.
-> 
-The user must enter either A, B, or X. The program will keep asking the user until they enter one of the three input options.
-
-If the user entered A, the program will run Task_A.py
-
-If the user entered B, the program will run Task_B.py
-
-If the user entered X, the program will terminate itself.
+    - The user must enter either A, B, or X. The program will keep asking the user until they enter one of the three input options.
+    - If the user entered A, the program will run Task_A.py
+    - If the user entered B, the program will run Task_B.py
+    - If the user entered X, the program will terminate itself.
 
 3. The program will then ask the user if they want to view the learning curves.
-> Would you also like to see the learning curves? Enter 'Y' if you do, and 'N' if you do not.
->
-The user must enter either Y or N. The program will keep asking the user until they enter one of the two input options.
-
-This option is included because generating the learning curves takes time and computation resources that some users may not have access to. So they can choose not to view them.
+    - The user must enter either Y or N. The program will keep asking the user until they enter one of the two input options.
+    - This option is included because generating the learning curves takes time and computation resources that some users may not have access to. So they can choose not to view them.
 
 4. After the model has finished training, the program will ask the user if they want to view the misclassified images.
->  Would you like to see the misclassified images? Print 'Y' if you do, and 'N' if you do not.
-> 
+    - This option is included because some users may not be interested in the misclassified images, so they may skip this step.
+    - This function is only included for Task A because there are significantly more misclassified images (in the hundreds range) for Task B, making it a messy affair to print them all out.
+    - The user is free to improve this code by adding functions for printing out misclassified images for Task B (refer to _Contributing Guidelines_ on how to contact the project owner regarding additional contributions to the code).
 
-This option is included because some users may not be interested in the misclassified images, so they may skip this step.
-
-This function is only included for Task A because there are significantly more misclassified images (in the hundreds range) for Task B, making it a messy affair to print them all out. The user is free to improve this code by adding functions for printing out misclassified images for Task B (refer to _Contributing Guidelines_ on how to contact the project owner regarding additional contributions to the code).
+## Contributing Guidelines
+Contact zceegdu@ucl.ac.uk for permission to edit code.
