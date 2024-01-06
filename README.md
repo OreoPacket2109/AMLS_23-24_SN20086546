@@ -66,7 +66,7 @@ For more information, refer to _requirements.txt_ in the repository.
     - This function is only included for Task A because there are significantly more misclassified images (in the hundreds range) for Task B, making it a messy affair to print them all out.
     - The user is free to improve this code by adding functions for printing out misclassified images for Task B (refer to _Contributing Guidelines_ on how to contact the project owner regarding additional contributions to the code).
 
-5. The code returns to step 2. The code will keep looping back to the menu function from step 2 after each Task is completed, until the user terminates the program by entering X when prompted.
+5. The code returns to step 2. The code will keep looping back to the menu function from step 2 after each Task is completed, until the user enters X when the option to enter A, B, or X is given. In which case, the program terminates.
 
 ## Contributing Guidelines
 Contact zceegdu@ucl.ac.uk for permission to edit code.
