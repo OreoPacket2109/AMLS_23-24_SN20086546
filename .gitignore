@@ -1,2 +1,5 @@
-/Datasets/*
-!/Datasets/.gitkeep  # Include this line to ensure the "Datasets" folder itself is pushed
+# Ignore all files inside Datasets folder
+Datasets/*
+
+# Except for the .gitkeep file
+!Datasets/.gitkeep
