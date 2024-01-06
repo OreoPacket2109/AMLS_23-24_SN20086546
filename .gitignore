@@ -1,2 +1,3 @@
 /Datasets/pathmnist.npz
 /Datasets/pneumoniamnist.npz
+!/Datasets/.gitkeep
