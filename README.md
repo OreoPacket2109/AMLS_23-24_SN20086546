@@ -16,6 +16,7 @@ The project folder is arranged as follows:
   - B
     - Task_B.py
   - Datasets
+    - dummy_file.txt
     - pathmnist.npz
     - pneumoniamnist.npz
   - .gitignore
@@ -28,6 +29,8 @@ All code related to the assignment must be run from main.py.
 Task_A.py and Task_B.py contain code required for building, training, testing the CNNs, and generating graphs related to Tasks A and B, respectively.
 
 pathmnist.npz and pneumoniamnist.npz are not included in this project repository. The user is expected to download the files themselves, and paste them into the _Datasets_ folder in their own copy of this code on their own machine. Instructions on how to download the files can be found in the *Setting Up the Project* Section.
+
+dummy_file.txt does not serve any purpose in the code's functionality. It is only added because GitHub would not let the owner of this project upload an empty folder to the repository, so the user may ignore it.
 
 requirement.txt contains the list of libraries required to run the code.
 
