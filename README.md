@@ -21,12 +21,15 @@ The project folder is arranged as follows:
   - .gitignore
   - main.py
   - README.md
+  - requirement.txt
 
 All code related to the assignment must be run from main.py.
 
 Task_A.py and Task_B.py contain code required for building, training, testing the CNNs, and generating graphs related to Tasks A and B, respectively.
 
 pathmnist.npz and pneumoniamnist.npz are not included in this project repository. The user is expected to download the files themselves, and paste them into the _Datasets_ folder in their own copy of this code on their own machine. Instructions on how to download the files can be found in the *Setting Up the Project* Section.
+
+requirement.txt contains the list of libraries required to run the code.
 
 ## Setting Up the Project
 1. Download the project onto the user's local machine.
