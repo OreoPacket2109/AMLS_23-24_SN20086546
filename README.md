@@ -36,7 +36,15 @@ pathmnist.npz and pneumoniamnist.npz are not included in this project repository
 5. Download the required libraries and packages. Refer to the _Required Packages_ section for further details.
 
 ## Required Packages
+| Package Name | Version |
+| -------- | -------- |
+| matplotlib | 3.7.2 |
+| numpy |  | 1.24.3 |
+| random | 1.2.4 |
+| scikit-learn | 1.3.0 |
+| tensorflow | 2.15.0 |
 
+For more information, refer to _requirements.txt_ in the repository.
 
 ## Running the Project
 User will be directed to a menu screen where they will be prompted to choose if they want to run Task A or Task B. Must answer A, B, or X.
@@ -44,9 +52,3 @@ User will be directed to a menu screen where they will be prompted to choose if 
 User will also be asked if they want to see the learning curvse. Learning curves take lots of computational power to generate, and some users' machines may not be able to handle it, so they are given the option to skip this stage.
 
 Program will prompt the user if they want to see misclassified images for Task A, but not Task B. This is because there are more images in Task B than A, making it messy to print them all out.
-
-## Required Packages
-| Package Name | Version |
-| -------- | -------- |
-| tensorflow | 2.15.0 |
-
