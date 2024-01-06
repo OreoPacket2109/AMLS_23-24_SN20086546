@@ -50,8 +50,8 @@ For more information, refer to _requirements.txt_ in the repository.
 1. Run the project from main.py
 2. The program will ask the user if they want to run Task A, B, or exit the program:
 > Enter 'A' to run Task A, 'B' to run Task B, and 'X' to exit the program.
-The user must enter either A, B, or X. The program will keep asking the user until they enter one of the three input options.
 > 
+The user must enter either A, B, or X. The program will keep asking the user until they enter one of the three input options.
 If the user entered A, the program will run Task_A.py
 If the user entered B, the program will run Task_B.py
 If the user entered X, the program will terminate itself.
