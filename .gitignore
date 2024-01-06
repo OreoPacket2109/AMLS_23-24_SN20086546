@@ -1,2 +1,2 @@
-Datasets/pathmnist.npz
-Datasets/pneumoniamnist.npz
+*.pathmnist.npz
+*.pneumoniamnist.npz
