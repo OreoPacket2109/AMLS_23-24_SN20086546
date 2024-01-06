@@ -1,2 +1,2 @@
-#Ignore all .npz files
-*.npz
+pathmnist.npz
+pneumoniamnist.npz
