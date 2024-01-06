@@ -1,3 +1,2 @@
-/Datasets/pathmnist.npz
-/Datasets/pneumoniamnist.npz
-!/Datasets/.gitkeep
+/Datasets/*
+!/Datasets/.gitkeep  # Include this line to ensure the "Datasets" folder itself is pushed
